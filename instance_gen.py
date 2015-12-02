@@ -28,6 +28,8 @@ def fully_random(num_nodes):
 	g = G.DGraph(num_nodes)
 	for i in range(num_nodes):
 		for j in range(num_nodes):
+			if j == i:
+				continue
 			if random.randint(0, 1):
 				g.edge(i, j)
 	print("Adjacency matrix for fully random graph: ")
@@ -35,8 +37,28 @@ def fully_random(num_nodes):
 	print()
 	return g.create_adj_list()
 
+def write_adj_to_file(name, adj_list, n_nodes):
+	with open(name, 'w') as o1:
+		print(str(n_nodes), file=o1)
+		for i in range(len(adj_list) - 1):
+			row = adj_list[i]
+			print(' '.join(map(str, row)), file=o1)
+		o1.write(' '.join(map(str, adj_list[len(adj_list) - 1])))
+
+
+
+N_NODES = 100
 if __name__ == "__main__":
-	print('Running testing suite:')
-	inst_1 = line(20)
-	inst_2 = random_backedges(20)
-	inst_3 = fully_random(20)
+	print('Generating instances:')
+	print('generating instance 1 - line')
+	l_adj_list = line(N_NODES)
+	write_adj_to_file('eigenvectors1.in', l_adj_list, N_NODES)
+	print('generating instance 2 - backedge')
+	backedge_adj_list = random_backedges(N_NODES)
+	write_adj_to_file('eigenvectors2.in', backedge_adj_list, N_NODES)
+	print('generating instance 3 - random')
+	rand_adj_list = fully_random(N_NODES)
+	write_adj_to_file('eigenvectors3.in', rand_adj_list, N_NODES)
+	print('done generating instances')
+
+

@@ -31,7 +31,7 @@ class DGraph():
 		return '\n'.join(result)
 
 	def __repr__(self):
-		return str(self.print_adj_list())
+		return self.print_adj_list()
 	def __str__(self):
 		return repr(self)
 
