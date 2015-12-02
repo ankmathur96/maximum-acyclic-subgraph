@@ -1,4 +1,4 @@
-class Graph():
+class DGraph():
 	# Graph class: 0-indexed nodes and creates an adjacency list.
 	# Consider switching to one of Python's native Graph classes later.
 	def __init__(self, n_nodes):
@@ -36,7 +36,7 @@ class Node():
 
 if __name__ == "__main__":
 	print('Running testing suite:')
-	g = Graph(3)
+	g = DGraph(3)
 	g.edge(0,1)
 	g.edge(1,2)
 	g.edge(2,0)
