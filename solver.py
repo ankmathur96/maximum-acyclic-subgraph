@@ -1,5 +1,6 @@
 PROCESS_MODE = False
 N_INSTANCES = 400
+TEST_INSTANCES = ['test.in']
 
 def process_instance(f):
 	n_nodes = int(f.readline())
@@ -26,9 +27,11 @@ if PROCESS_MODE:
 				result = compute_result(adj_list)
 				print(' '.join(map(str, result)) + '\n', file=o)
 else:
-	print('running on test instance.')
-	with open('test-out.out', 'w') as o:
-		with open('test.in', 'r') as i:
-			adj_list = process_instance(i)
-			result = compute_result(adj_list)
-			print(' '.join(map(str, result)) + '\n', file=o)
+	print('running on test instances.')
+	for instance in TEST_INSTANCES:
+		with open(instance + '-out.out', 'w') as o:
+			with open(instance, 'r') as i:
+				adj_list = process_instance(i)
+				result = compute_result(adj_list)
+				print(' '.join(map(str, result)) + '\n', file=o)
+

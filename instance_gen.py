@@ -58,5 +58,3 @@ if __name__ == "__main__":
 	rand_adj_list = fully_random(N_NODES)
 	write_adj_to_file('eigenvectors3.in', rand_adj_list, N_NODES)
 	print('done generating instances')
-
-
