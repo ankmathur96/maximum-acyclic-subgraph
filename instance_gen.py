@@ -45,8 +45,6 @@ def write_adj_to_file(name, adj_list, n_nodes):
 			print(' '.join(map(str, row)), file=o1)
 		o1.write(' '.join(map(str, adj_list[len(adj_list) - 1])))
 
-
-
 N_NODES = 100
 if __name__ == "__main__":
 	print('Generating instances:')
