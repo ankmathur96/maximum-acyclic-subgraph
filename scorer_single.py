@@ -11,8 +11,7 @@ def main(argv):
 def processTest(inst, sol):
 	fin = open(inst, "r")
 	N = int(fin.readline().split()[0])
-	d = [[0 for j in range(N)] for i in range(N)]
-	e = 0
+	d, e = [[0 for j in range(N)] for i in range(N)], 0
 	for i in xrange(N):
 		d[i] = map(int, fin.readline().split())
 		e += sum(d[i])
