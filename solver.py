@@ -1,5 +1,6 @@
 PROCESS_MODE = False
 N_INSTANCES = 400
+N_RANDOM_TRIES = 1000
 TEST_INSTANCES = ['test.in']
 
 def process_instance(f):
@@ -10,12 +11,15 @@ def process_instance(f):
 	return adj_list
 
 def compute_result(adj_list):
-	#first check whether the graph is linear, if so, you're done.
+	# first check whether the graph is linear, if so, you're done.
 	# try the same thing, except with circular graphs (edge cases)
+	# if fully connected, return any any arbitrary ordering of the nodes.
+	# ACTUAL ALGORITHM:
 	# label the vertices such that you can say one set of the graph
 	# has edges where the edge (n1, n2) has n1 < n2 and the other set has n1 > n2.
-	# Neither of these will have cycles. Pick the one with larger carindality.
-	# linearize and produce a valid ranking at the end.
+	# Neither of these will have cycles. Pick the one with larger cardinality.
+	# Repeat several times and take the best ordering.
+	# Linearize and produce a valid ranking at the end.
 	# THE FOLLOWING IS BOILERPLATE - IT DOES NOT WORK PROPERLY.
 	return [x for x in range(len(adj_list))]
 

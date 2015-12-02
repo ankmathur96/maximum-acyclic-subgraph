@@ -30,6 +30,9 @@ class DGraph():
 		result = [' '.join(str(val).ljust(2) for val in adj_list[i]) for i in range(len(adj_list))]
 		return '\n'.join(result)
 
+	def linearize(self):
+		return self.node_list
+
 	def __repr__(self):
 		return self.print_adj_list()
 	def __str__(self):
