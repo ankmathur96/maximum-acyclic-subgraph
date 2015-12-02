@@ -27,7 +27,7 @@ class DGraph():
 	def print_adj_list(self):
 		"""Outputs easy-view formatted representation of the adjacency matrix for this graph"""
 		adj_list = self.create_adj_list()
-		result = [' '.join(str(val).ljust(3) for val in adj_list[i]) for i in range(len(adj_list))]
+		result = [' '.join(str(val).ljust(2) for val in adj_list[i]) for i in range(len(adj_list))]
 		return '\n'.join(result)
 
 	def __repr__(self):
