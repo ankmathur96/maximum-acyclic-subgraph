@@ -32,7 +32,15 @@ def fully_random(num_nodes):
 				continue
 			if random.randint(0, 1):
 				g.edge(i, j)
-	print("Adjacency matrix for fully random graph: ")
+	if num_nodes >= 5:
+		for num_high_degree in range(random.randint(5, num_nodes//4)):
+			i = random.randint(0, num_nodes - 1)
+			for deg in range(random.randint(3, num_nodes//4)):
+				j = random.randint(0, num_nodes - 1)
+				while (j == i):
+					j = random.randint(0, num_nodes - 1)
+				g.edge(i, j)
+	print("Adjacency matrix for random graph (with minimum degree 3): ")
 	print(g)
 	print()
 	return g.create_adj_list()

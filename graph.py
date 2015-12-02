@@ -13,6 +13,11 @@ class DGraph():
 			raise IndexError('One of the nodes is out of bounds.')
 		self.node_list[n1].children.add(n2)
 
+	def is_edge(self, n1, n2):
+		if n2 in self.node_list[n1].children:
+			return True
+		return False
+
 	def create_adj_list(self):
 		"""Returns an adjacency matrix representation of self"""
 		adj_list = []
@@ -30,8 +35,34 @@ class DGraph():
 		result = [' '.join(str(val).ljust(2) for val in adj_list[i]) for i in range(len(adj_list))]
 		return '\n'.join(result)
 
+	def cycle_util(v, visited, recursion_stack):
+		if visited[v] == False:
+			visited[v] = True
+			recursion_stack[v] = True
+			adj_vertices = self.node_list[v].children
+			for m in adj_vertices:
+				if not visited[m] and cycle_util(m, visited, recursion_stack):
+					return True
+				elif recursion_stack[m]:
+					return True
+		recursion_stack[v] = False
+		return False
+
+	def is_cycle(self):
+		recursion_stack, visited = [], []
+		for i in range(len(self.node_list)):
+			visited.append(False)
+			recursion_stack.append(False)
+		for j in range(len(self.node_list)):
+			if cycle_util(j, visited, recursion_stack):
+				return True
+		return False                                                                                         
+
 	def linearize(self):
-		return self.node_list
+		if self.is_cycle():
+			print('IS CYCLE')
+			return []
+		return []
 
 	def __repr__(self):
 		return self.print_adj_list()
@@ -42,6 +73,8 @@ class Node():
 	"""Simple node class"""
 	def __init__(self, n_num, children=None):
 		self.id = n_num
+		self.pre = None
+		self.post = None
 		if children is None:
 			self.children = set()
 		else:
