@@ -35,13 +35,13 @@ class DGraph():
 		result = [' '.join(str(val).ljust(2) for val in adj_list[i]) for i in range(len(adj_list))]
 		return '\n'.join(result)
 
-	def cycle_util(v, visited, recursion_stack):
+	def cycle_util(self, v, visited, recursion_stack):
 		if visited[v] == False:
 			visited[v] = True
 			recursion_stack[v] = True
 			adj_vertices = self.node_list[v].children
 			for m in adj_vertices:
-				if not visited[m] and cycle_util(m, visited, recursion_stack):
+				if not visited[m] and self.cycle_util(m, visited, recursion_stack):
 					return True
 				elif recursion_stack[m]:
 					return True
@@ -54,15 +54,27 @@ class DGraph():
 			visited.append(False)
 			recursion_stack.append(False)
 		for j in range(len(self.node_list)):
-			if cycle_util(j, visited, recursion_stack):
+			if self.cycle_util(j, visited, recursion_stack):
 				return True
 		return False                                                                                         
+
+	def linearize_helper(self, v, visited, linear_order):
+		visited[v] = True
+		for n in self.node_list[v].children:
+			if visited[n] is False:
+				self.linearize_helper(n, visited, linear_order)
+		linear_order.append(v)
 
 	def linearize(self):
 		if self.is_cycle():
 			print('IS CYCLE')
 			return []
-		return []
+		visited = [False for i in range(len(self.node_list))]
+		linear_order = []
+		for i in range(len(self.node_list)):
+			if visited[i] is False:
+				self.linearize_helper(i, visited, linear_order)
+		return linear_order[::-1]
 
 	def __repr__(self):
 		return self.print_adj_list()
@@ -79,4 +91,11 @@ class Node():
 			self.children = set()
 		else:
 			self.children = set()
-
+if __name__ == "__main__":
+	g = DGraph(5)
+	g.edge(1,0)
+	g.edge(3,1)
+	g.edge(0,2)
+	g.edge(2,3)
+	g.edge(3,4)
+	print(g.linearize())
