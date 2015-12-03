@@ -63,13 +63,13 @@ def compute_result(instance):
         random.shuffle(labels)
         set1 = [] # make these actually sets # FIX THIS
         set2 = [] # make these actually sets # FIX THIS
-        for x in range(len(adj_list)):# every edge: # FIX THIS
-            u = 1 # FIX THIS
-            v = 1 # FIX THIS
-            if labels[u] < labels[v]:
-                set1.append((u,v))
-            else:
-                set2.append((u,v))
+        for x in range(len(adj_list)):# Iterate through every edge by checking for 1s in adj_list
+        	for y in range(len(adj_list[x])):
+        		if adj_list[x][y] == 1:
+		            if labels[x] < labels[y]:
+		                set1.append((x,y))
+		            else:
+		                set2.append((x,y))
         larger_set = set1 if len(set1) > len(set2) else set2
         if (len(larger_set) > len(best_set)):
             best_set = larger_set
