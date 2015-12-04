@@ -39,6 +39,7 @@ def compute_result_general(instance, linearization=None):
     if complete(instance):
         return [x for x in range(len(adj_list))]
 
+    # TO BE DEBUGGED BY ADI/ARNAV
     # ACTUAL ALGORITHM:
     # label the vertices such that you can say one set of the graph
     # has edges where the edge (n1, n2) has n1 < n2 and the other set has n1 > n2.
@@ -106,6 +107,7 @@ def compute_result_small_degree(instance):
         return g.DGraph(len(sub_adj_list), sub_adj_list)
     else:
         while has_blue_edge(inst_cpy):
+            # TO BE IMPLEMENTED BY ADI/ARNAV
             # Optimally treat any 2- and 3- cycles
 
             # Find a blue edge
@@ -176,7 +178,7 @@ def complete(instance):
 
 def longest_increasing_subsequence():
     """Returns a subgraph containing the longest increasing subsequence of the input linearized DAG"""
-    # TO BE IMPLEMENTED
+    # TO BE IMPLEMENTED BY NIKHIL
 
 if PROCESS_MODE:
     with open('eigenvectors.out', 'w') as o:        
