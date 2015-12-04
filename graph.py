@@ -91,7 +91,7 @@ class DGraph():
 		for i in range(len(self.node_list)):
 			if visited[i] is False:
 				self.linearize_helper(i, visited, linear_order)
-		return linear_order[::-1]
+		return linear_order
 
 	def __repr__(self):
 		return self.print_adj_list()

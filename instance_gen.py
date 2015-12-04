@@ -46,6 +46,7 @@ def fully_random(num_nodes):
 	return g.adj_list
 
 def single_cycle(num_nodes):
+	"""Generates a graph with a single cycle that passes through every node, and no other edges"""
 	g = G.DGraph(num_nodes)
 	for n in range(num_nodes-1):
 		g.edge(n, n+1)

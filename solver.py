@@ -8,14 +8,15 @@ TEST_INSTANCES = ['test.in']
 
 def find_MAS(instance):
     """Overaching function that approximates the maximum acyclic subgraph for an input directed graph"""
-    if instance.linearize():
-        return compute_result_dag(instance)
+    lin_order = instance.linearize()
+    if lin_order:
+        return compute_result_general(instance, lin_order)
     for i in range(len(instance.adj_list)):
         if instance.out_degree(i) + instance.in_degree(i) > 3:
             return compute_result_general(instance)
     return compute_result_small_degree(instance)
 
-def compute_result_dag(instance):
+def compute_result_general(instance, linearization=None):
     """Computes an approximate ordering of the nodes in the graph such that
        the number of valid edges is maximized. See the Maximum Acyclic Subgraph
        problem for more details. 
@@ -29,20 +30,15 @@ def compute_result_dag(instance):
         list: An ordered list of integers that represent nodes in graph.
 
     """
-    # UNTESTED 
-    # first check whether the graph is linear, if so, you're done.
-    lin_order = instance.linearize()
-    if (lin_order != []):
-        return lin_order
-    # try the same thing, except with circular graphs (edge cases)
-    circular = False # FIX THIS
-    if (circular):
-        return [] # FIX THIS
-    # if fully connected, return any any arbitrary ordering of the nodes.
-    adj_list = instance.create_adj_list()
-    # this is a one liner to check if all edges are present
-    if ((sum([sum([el != 1 for el in row]) for row in adj_list]) == 0)):
+    # UNTESTED
+    # Special cases
+    if linearization != None:
+        return longest_increasing_subsequence(instance, linearization)
+    if circular(instance):
+        return compute_result_small_degree(instance)
+    if complete(instance):
         return [x for x in range(len(adj_list))]
+
     # ACTUAL ALGORITHM:
     # label the vertices such that you can say one set of the graph
     # has edges where the edge (n1, n2) has n1 < n2 and the other set has n1 > n2.
@@ -51,7 +47,7 @@ def compute_result_dag(instance):
     # Linearize and produce a valid ranking at the end.
     best_set = []
     for i in range(N_RANDOM_TRIES):
-        labels = [x for x in range(len(adj_list))]
+        labels = [x for x in range(len(instance.adj_list))]
         random.shuffle(labels)
         set1 = [] # make these actually sets # FIX THIS
         set2 = [] # make these actually sets # FIX THIS
@@ -84,7 +80,6 @@ def compute_result_small_degree(instance):
         list: An ordered list of integers that represent nodes in graph.
 
     """
-    # SEMI-TESTED
     S, inst_cpy = {}, g.DGraph(len(instance.adj_list), copy(instance.adj_list))
     if not has_blue_edge(instance):
         while inst_cpy.is_cycle():
@@ -118,24 +113,6 @@ def compute_result_small_degree(instance):
             # ... continue
             break
         return None
-
-
-def compute_result_general(instance):
-    """Computes a 1/2-approximation of the nodes in the graph such that
-       the number of valid edges is maximized. See the Maximum Acyclic Subgraph
-       problem for more details.
-
-       This function is run when the conditions specified for compute_result and
-       compute_result_2 are not satisfied.
-
-    Args:
-        instance (DGraph): The graph which we are ordering.
-
-    Returns:
-        list: An ordered list of integers that represent nodes in graph.
-
-    """
-
 
 ####################
 # HELPER FUNCTIONS #
@@ -172,8 +149,34 @@ def has_blue_edge(instance):
     return blue_edge
 
 def copy(mat):
-    """Returns a shallow copy of an input matrix"""
+    """Returns a shallow copy of the input matrix"""
     return [[mat[i][j] for j in range(len(mat[0]))] for i in range(len(mat))]
+
+def circular(instance):
+    """Edge case tester. Returns true if instance is a perfectly circular graph"""
+    if sum([sum(row) for row in instance.adj_list]) != len(instance.adj_list):
+        return False
+    curr_node, nodes = 0, {i : True for i in range(len(instance.adj_list))}
+    while True:
+        del nodes[curr_node]
+        if sum(instance.adj_list[curr_node]) != 1:
+            return False
+        if not nodes:
+            return True
+
+        for i in range(len(instance.adj_list)):
+            if instance.adj_list[i][curr_node] == 1:
+                curr_node = i
+                continue
+        
+
+def complete(instance):
+    """Returns True if input graph is complete, False otherwise"""
+    return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
+
+def longest_increasing_subsequence():
+    """Returns a subgraph containing the longest increasing subsequence of the input linearized DAG"""
+    # TO BE IMPLEMENTED
 
 if PROCESS_MODE:
     with open('eigenvectors.out', 'w') as o:        
@@ -190,3 +193,4 @@ else:
                 instance = process_instance(i)
                 result = find_MAS(instance)
                 print(' '.join(map(str, result)) + '\n', file=o)
+
