@@ -33,7 +33,7 @@ def compute_result_general(instance, linearization=None):
     # UNTESTED
     # Special cases
     if linearization != None:
-        return longest_increasing_subsequence(instance, linearization)
+        return instance
     if circular(instance):
         return compute_result_small_degree(instance)
     if complete(instance):
@@ -170,15 +170,11 @@ def circular(instance):
             if instance.adj_list[i][curr_node] == 1:
                 curr_node = i
                 continue
-        
 
 def complete(instance):
     """Returns True if input graph is complete, False otherwise"""
     return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
 
-def longest_increasing_subsequence():
-    """Returns a subgraph containing the longest increasing subsequence of the input linearized DAG"""
-    # TO BE IMPLEMENTED BY NIKHIL
 
 if PROCESS_MODE:
     with open('eigenvectors.out', 'w') as o:        
@@ -195,4 +191,3 @@ else:
                 instance = process_instance(i)
                 result = find_MAS(instance)
                 print(' '.join(map(str, result)) + '\n', file=o)
-
