@@ -6,27 +6,16 @@ N_INSTANCES = 400
 N_RANDOM_TRIES = 1000
 TEST_INSTANCES = ['test.in']
 
-def process_instance(f):
-    """Parses the instance and returns the corresponding graph.
+def find_MAS(instance):
+    """Overaching function that approximates the maximum acyclic subgraph for an input directed graph"""
+    if instance.linearize():
+        return compute_result_dag(instance)
+    for i in range(len(instance.adj_list)):
+        if instance.out_degree(i) + instance.in_degree(i) > 3:
+            return compute_result_general(instance)
+    return compute_result_small_degree(instance)
 
-    Args:
-        f (TextIOWrapper): The file being read.
-
-    Returns:
-        DGraph: The directed graph described by the file.
-
-    """
-    num_nodes = int(f.readline())
-    adj_matrix = []
-    instance = g.DGraph(num_nodes)
-    for x in range(num_nodes):
-        line = f.readline().split()
-        for i, edge in enumerate(line):
-            if (int(edge) == 1):
-                instance.edge(int(x), int(i))
-    return instance
-
-def compute_result(instance):
+def compute_result_dag(instance):
     """Computes an approximate ordering of the nodes in the graph such that
        the number of valid edges is maximized. See the Maximum Acyclic Subgraph
        problem for more details. 
@@ -81,7 +70,7 @@ def compute_result(instance):
         new_graph.edge(edge[0], edge[1])
     return new_graph.linearize()
 
-def compute_result_2(instance):
+def compute_result_small_degree(instance):
     """Computes an 8/9-approximation of the nodes in the graph such that
        the number of valid edges is maximized. See the Maximum Acyclic Subgraph
        problem for more details.
@@ -95,9 +84,9 @@ def compute_result_2(instance):
         list: An ordered list of integers that represent nodes in graph.
 
     """
-    # UNTESTED
-    if has_blue_edge(instance):
-        S, inst_cpy = {}, g.DGraph(len(instance.adj_list), copy(instance.adj_list))
+    # SEMI-TESTED
+    S, inst_cpy = {}, g.DGraph(len(instance.adj_list), copy(instance.adj_list))
+    if not has_blue_edge(instance):
         while inst_cpy.is_cycle():
             cycle = inst_cpy.find_cycle()
             for i in range(len(cycle) - 1):
@@ -106,25 +95,32 @@ def compute_result_2(instance):
                     S[cycle[i]] = [cycle[i + 1]]
                 else:
                     S[cycle[i]].append(cycle[i + 1])
-            inst_cpy.adj_list[cycle[-1][0]] = 0
+            inst_cpy.adj_list[cycle[-1]][cycle[0]] = 0
         for i in range(len(inst_cpy.adj_list)):
             for j in range(len(inst_cpy.adj_list[0])):
                 if i != j:
-                    if inst_cpy.adj_list[i][j] = 1:
+                    if inst_cpy.adj_list[i][j] == 1:
                         if i not in S:
                             S[i] = [j]
                         else:
                             S[i].append(j)
-        sub_adj_list = [[0 for _ in range(len(S.keys()))] for _ in range(len(S.keys()))]
+        sub_adj_list = [[0 for _ in range(len(inst_cpy.adj_list))] for _ in range(len(inst_cpy.adj_list))]
         for i in S.keys():
             for j in S[i]:
                 sub_adj_list[i][j] = 1
         return g.DGraph(len(sub_adj_list), sub_adj_list)
     else:
-        # Algorithm 2
+        while has_blue_edge(inst_cpy):
+            # Optimally treat any 2- and 3- cycles
+
+            # Find a blue edge
+
+            # ... continue
+            break
+        return None
 
 
-def compute_result_3(instance):
+def compute_result_general(instance):
     """Computes a 1/2-approximation of the nodes in the graph such that
        the number of valid edges is maximized. See the Maximum Acyclic Subgraph
        problem for more details.
@@ -144,6 +140,25 @@ def compute_result_3(instance):
 ####################
 # HELPER FUNCTIONS #
 ####################
+def process_instance(f):
+    """Parses the instance and returns the corresponding graph.
+
+    Args:
+        f (TextIOWrapper): The file being read.
+
+    Returns:
+        DGraph: The directed graph described by the file.
+
+    """
+    num_nodes = int(f.readline())
+    adj_matrix = []
+    instance = g.DGraph(num_nodes)
+    for x in range(num_nodes):
+        line = f.readline().split()
+        for i, edge in enumerate(line):
+            if (int(edge) == 1):
+                instance.edge(int(x), int(i))
+    return instance
 
 def has_blue_edge(instance):
     """Returns true if the input DGraph has a blue edge, and false otherwise"""
@@ -173,6 +188,5 @@ else:
         with open(instance + '-out.out', 'w') as o:
             with open(instance, 'r') as i:
                 instance = process_instance(i)
-                result = compute_result(instance)
+                result = find_MAS(instance)
                 print(' '.join(map(str, result)) + '\n', file=o)
-

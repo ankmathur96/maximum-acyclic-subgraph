@@ -84,7 +84,7 @@ class DGraph():
 	def linearize(self):
 		"""Returns linearized ordering of graph (if DAG), False otherwise"""
 		if self.is_cycle():
-			print('IS CYCLE')
+			# print('IS CYCLE')
 			return []
 		visited = [False for i in range(len(self.node_list))]
 		linear_order = []

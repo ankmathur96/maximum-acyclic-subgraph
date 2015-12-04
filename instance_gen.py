@@ -45,6 +45,17 @@ def fully_random(num_nodes):
 	print()
 	return g.adj_list
 
+def single_cycle(num_nodes):
+	g = G.DGraph(num_nodes)
+	for n in range(num_nodes-1):
+		g.edge(n, n+1)
+	g.edge(num_nodes - 1, 0)
+	print("Adjacency matrix for full cycle: ")
+	print(g)
+	print()
+	return g.adj_list
+
+
 def write_adj_to_file(name, adj_list, n_nodes):
 	with open(name, 'w') as o1:
 		print(str(n_nodes), file=o1)
@@ -66,3 +77,4 @@ if __name__ == "__main__":
 	rand_adj_list = fully_random(N_NODES)
 	write_adj_to_file('eigenvectors3.in', rand_adj_list, N_NODES)
 	print('done generating instances')
+	full_cycle(20)
