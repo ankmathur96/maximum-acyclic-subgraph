@@ -1,22 +1,22 @@
 import graph as g
 import random
 
-PROCESS_MODE = False
-N_INSTANCES = 400
+PROCESS_MODE = True
+N_INSTANCES = 621
 N_RANDOM_TRIES = 1000
-TEST_INSTANCES = ['test.in']
+TEST_INSTANCES = ["eigenvectors1.in", "eigenvectors2.in", "eigenvectors3.in"]
 
 def find_MAS(instance):
     """Overaching function that approximates the maximum acyclic subgraph for an input directed graph"""
-    lin_order = instance.linearize()
+    lin_order = instance.linearize()[::-1]
     if lin_order:
-        return compute_result_general(instance, lin_order)
+        return [1 + x for x in lin_order]
     for i in range(len(instance.adj_list)):
         if instance.out_degree(i) + instance.in_degree(i) > 3:
-            return compute_result_general(instance)
-    return compute_result_small_degree(instance)
+            return [1 + x for x in compute_result_general(instance)]
+    return [1 + x for x in compute_result_small_degree(instance)]
 
-def compute_result_general(instance, linearization=None):
+def compute_result_general(instance):
     """Computes an approximate ordering of the nodes in the graph such that
        the number of valid edges is maximized. See the Maximum Acyclic Subgraph
        problem for more details. 
@@ -32,12 +32,11 @@ def compute_result_general(instance, linearization=None):
     """
     # UNTESTED
     # Special cases
-    if linearization != None:
-        return instance
+    adj_list = instance.adj_list
     if circular(instance):
         return compute_result_small_degree(instance)
     if complete(instance):
-        return [x for x in range(len(adj_list))] # INCORRECT
+        return [x for x in range(len(adj_list))]
 
     # TO BE DEBUGGED BY ADI/ARNAV
     # ACTUAL ALGORITHM:
@@ -50,9 +49,9 @@ def compute_result_general(instance, linearization=None):
     for i in range(N_RANDOM_TRIES):
         labels = [x for x in range(len(instance.adj_list))]
         random.shuffle(labels)
-        set1 = [] # make these actually sets # FIX THIS
-        set2 = [] # make these actually sets # FIX THIS
-        for x in range(len(adj_list)):# Iterate through every edge by checking for 1s in adj_list
+        set1 = []
+        set2 = []
+        for x in range(len(adj_list)): # Iterate through every edge by checking for 1s in adj_list
         	for y in range(len(adj_list[x])):
         		if adj_list[x][y] == 1:
 		            if labels[x] < labels[y]:
@@ -65,7 +64,7 @@ def compute_result_general(instance, linearization=None):
     new_graph = g.DGraph(len(adj_list))
     for edge in best_set:
         new_graph.edge(edge[0], edge[1])
-    return new_graph.linearize()
+    return new_graph.linearize()[::-1]
 
 def compute_result_small_degree(instance):
     """Computes an 8/9-approximation of the nodes in the graph such that
@@ -104,7 +103,7 @@ def compute_result_small_degree(instance):
         for i in S.keys():
             for j in S[i]:
                 sub_adj_list[i][j] = 1
-        return g.DGraph(len(sub_adj_list), sub_adj_list)
+        return g.DGraph(len(sub_adj_list), sub_adj_list).linearize()[::-1]
     else:
         while has_blue_edge(inst_cpy):
             # TO BE IMPLEMENTED BY ADI/ARNAV
@@ -114,7 +113,7 @@ def compute_result_small_degree(instance):
 
             # ... continue
             break
-        return None
+        return [x for x in range(len(instance.adj_list))]
 
 ####################
 # HELPER FUNCTIONS #
@@ -173,15 +172,17 @@ def circular(instance):
 
 def complete(instance):
     """Returns True if input graph is complete, False otherwise"""
+    adj_list = instance.adj_list
     return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
 
 
 if PROCESS_MODE:
     with open('eigenvectors.out', 'w') as o:        
         for x in range(N_INSTANCES):
-            with open(str(x) + '.in', 'r') as i:
+            print("proccessing instance" + str(x))
+            with open("instances/" + str(x + 1) + '.in', 'r') as i:
                 instance = process_instance(i)
-                result = compute_result(instance)
+                result = find_MAS(instance)
                 print(' '.join(map(str, result)) + '\n', file=o)
 else:
     print('running on test instances.')
