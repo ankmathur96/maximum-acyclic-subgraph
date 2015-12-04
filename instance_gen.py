@@ -9,7 +9,7 @@ def line(num_nodes):
 	print("Adjacency matrix for linear graph: ")
 	print(g)
 	print()
-	return g.create_adj_list()
+	return g.adj_list
 
 def random_backedges(num_nodes):
 	"""Draws an edge from node 0 to every other node, plus a backedge with probability 0.5"""
@@ -21,7 +21,7 @@ def random_backedges(num_nodes):
 	print("Adjacency matrix for random backedges: ")
 	print(g)
 	print()
-	return g.create_adj_list()
+	return g.adj_list
 
 def fully_random(num_nodes):
 	"""Generates an entirely random graph"""
@@ -43,7 +43,7 @@ def fully_random(num_nodes):
 	print("Adjacency matrix for random graph (with minimum degree 3): ")
 	print(g)
 	print()
-	return g.create_adj_list()
+	return g.adj_list
 
 def write_adj_to_file(name, adj_list, n_nodes):
 	with open(name, 'w') as o1:
@@ -53,7 +53,7 @@ def write_adj_to_file(name, adj_list, n_nodes):
 			print(' '.join(map(str, row)), file=o1)
 		o1.write(' '.join(map(str, adj_list[len(adj_list) - 1])))
 
-N_NODES = 100
+N_NODES = 20
 if __name__ == "__main__":
 	print('Generating instances:')
 	print('generating instance 1 - line')
