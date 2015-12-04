@@ -37,7 +37,7 @@ def compute_result_general(instance, linearization=None):
     if circular(instance):
         return compute_result_small_degree(instance)
     if complete(instance):
-        return [x for x in range(len(adj_list))]
+        return [x for x in range(len(adj_list))] # INCORRECT
 
     # TO BE DEBUGGED BY ADI/ARNAV
     # ACTUAL ALGORITHM:
