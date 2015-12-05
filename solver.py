@@ -52,12 +52,12 @@ def compute_result_general(instance):
         set1 = []
         set2 = []
         for x in range(len(adj_list)): # Iterate through every edge by checking for 1s in adj_list
-        	for y in range(len(adj_list[x])):
-        		if adj_list[x][y] == 1:
-		            if labels[x] < labels[y]:
-		                set1.append((x,y))
-		            else:
-		                set2.append((x,y))
+            for y in range(len(adj_list[x])):
+                if adj_list[x][y] == 1:
+                    if labels[x] < labels[y]:
+                        set1.append((x,y))
+                    else:
+                        set2.append((x,y))
         larger_set = set1 if len(set1) > len(set2) else set2
         if (len(larger_set) > len(best_set)):
             best_set = larger_set
@@ -82,38 +82,179 @@ def compute_result_small_degree(instance):
     """
     S, inst_cpy = {}, g.DGraph(len(instance.adj_list), copy(instance.adj_list))
     if not has_blue_edge(instance):
-        while inst_cpy.is_cycle():
-            cycle = inst_cpy.find_cycle()
-            for i in range(len(cycle) - 1):
-                inst_cpy.adj_list[cycle[i]][cycle[i+1]] = 0
-                if cycle[i] not in S:
-                    S[cycle[i]] = [cycle[i + 1]]
-                else:
-                    S[cycle[i]].append(cycle[i + 1])
-            inst_cpy.adj_list[cycle[-1]][cycle[0]] = 0
-        for i in range(len(inst_cpy.adj_list)):
-            for j in range(len(inst_cpy.adj_list[0])):
-                if i != j:
-                    if inst_cpy.adj_list[i][j] == 1:
-                        if i not in S:
-                            S[i] = [j]
-                        else:
-                            S[i].append(j)
-        sub_adj_list = [[0 for _ in range(len(inst_cpy.adj_list))] for _ in range(len(inst_cpy.adj_list))]
-        for i in S.keys():
-            for j in S[i]:
-                sub_adj_list[i][j] = 1
-        return g.DGraph(len(sub_adj_list), sub_adj_list).linearize()[::-1]
+        return compute_result_small_degree_algo1(instance)
     else:
         while has_blue_edge(inst_cpy):
             # TO BE IMPLEMENTED BY ADI/ARNAV
-            # Optimally treat any 2- and 3- cycles
 
-            # Find a blue edge
+            # Calculate in- and out-degree for each node
+            in_degree_list = [0 for _ in range(len(inst_cpy.adj_list))]
+            out_degree_list = [0 for _ in range(len(inst_cpy.adj_list))]
+            for i in range(len(inst_cpy.adj_list)):
+                out_degree_list[i] = sum(inst_cpy.adj_list[i])
+                in_degree_list[i] = sum([inst_cpy.adj_list[x][i] for x in range(len(inst_cpy.adj_list))])
 
-            # ... continue
-            break
-        return [x for x in range(len(instance.adj_list))]
+            
+            for j in range(len(in_degree_list)):
+                # Checking for nodes that either only go in, or out
+                if in_degree_list[j] == 0 or out_degree_list[j] == 0:
+                    for all k in range(len(inst_cpy.adj_list)):
+                        if inst_cpy.adj_list[k][j] == 1:
+                            if k in S:
+                                S[k].append(j)
+                            else:
+                                S[k] = [j]
+                        if inst_cpy[j][k] == 1:
+                            if j in S:
+                                S[j].append(k)
+                            else:
+                                S[j] = [k]
+                # Contract vertices with in-degree == out-degree == 1
+                if (in_degree_list[j] == 1) and (out_degree_list[j] == 1):
+                    j_in = ""
+                    j_out = ""
+                    for l in range(len(inst_cpy.adj_list)):
+                        if inst_cpy.adj_list[j][l] == 1:
+                            j_out = l
+                        if inst_cpy.adj_list[l][j] == 1:
+                            j_in = l
+                    inst_cpy.adj_list[j_in][j_out] = 1
+                    inst_cpy.adj_list[j][j_out] = 0
+                    inst_cpy.adj_list[j_in][j] = 0
+                for k in range(len(inst_cpy.adj_list)):
+                    # Checking for 2-cycles
+                    if two_cycle(inst_cpy, j, k):
+                        j_edge = ""
+                        j_other_node = ""
+                        k_edge = ""
+                        k_other_node = ""
+                        for l in range(len(inst_cpy.adj_list)):
+                            if l not == j:
+                                # For other out-edges from k
+                                if inst_cpy.adj_list[k][l] == 1:
+                                    k_edge = "out"
+                                    k_other_node = l
+                                # For other in-edges to j
+                                if inst_cpy.adj_list[l][j] == 1:
+                                    j_edge = "in"
+                                    j_other_node = l
+                            if l not == k:
+                                # For other out-edges from j
+                                if inst_cpy.adj_list[j][l] == 1:
+                                    j_edge = "out"
+                                    j_other_node = l
+                                # For other in-edges to k
+                                if inst_cpy.adj_list[l][k] == 1:
+                                    k_edge = "in"
+                                    k_other_node = l
+                        if (j_edge == "out" and k_edge == "out"):
+                            inst_cpy.adj_list[j][j_other_node] = 0
+                        if (j_edge == "in" and k_edge == "in"):
+                            inst_cpy.adj_list[j_other_node][j] = 0
+                    for m in range(len(inst_cpy.adj_list)):
+                        # Checking for 3-cycles
+                        if three_cycle(inst_cpy, j, k, m):
+                            for l in range(len(inst_cpy.adj_list)):
+                                if l not == j and l not == k:
+                                    # For other in-edges to m
+                                    if inst_cpy.adj_list[l][m] == 1:
+                                        m_edge = "in"
+                                        m_other_node = l
+                                    # For other out-edges from m
+                                    if inst_cpy.adj_list[m][l] == 1:
+                                        m_edge = "out"
+                                        m_other_node = l
+                                if l not == j and l not == m:
+                                    # For other in-edges to k
+                                    if inst_cpy.adj_list[l][k] == 1:
+                                        k_edge = "in"
+                                        k_other_node = l
+                                    # For other out-edges from k
+                                    if inst_cpy.adj_list[k][l] == 1:
+                                        k_edge = "out"
+                                        k_other_node = l
+                                if l not == k and l not == m:
+                                    # For other in-edges to j
+                                    if inst_cpy.adj_list[l][j] == 1:
+                                        j_edge = "in"
+                                        j_other_node = l
+                                    # For other out-edges from j
+                                    if inst_cpy.adj_list[j][l] == 1:
+                                        j_edge = "out"
+                                        j_other_node = l
+                            if (j_edge == "out" and k_edge == "out" and m_edge == "out"):
+                                inst_cpy.adj_list[j][j_other_node] = 0
+                            elif (j_edge == "in" and k_edge == "in" and m_edge == "in"):
+                                inst_cpy.adj_list[j_other_node][j] = 0
+                            elif (j_edge not == k_edge) and (j_edge not == m_edge):
+                                if inst_cpy.adj_list[k][j] == 1:
+                                    inst_cpy.adj_list[k][j] == 0
+                                elif inst_cpy.adj_list[m][j] == 1:
+                                    inst_cpy.adj_list[m][j] == 0
+                            elif (k_edge not == j_edge) and (k_edge not == m_edge):
+                                if inst_cpy.adj_list[j][k] == 1:
+                                    inst_cpy.adj_list[j][k] == 0
+                                elif inst_cpy.adj_list[m][k] == 1:
+                                    inst_cpy.adj_list[m][k] == 0
+                            elif (m_edge not == j_edge) and (m_edge not == k_edge):
+                                if inst_cpy.adj_list[j][m] == 1:
+                                    inst_cpy.adj_list[j][m] == 0
+                                elif inst_cpy.adj_list[k][m] == 1:
+                                    inst_cpy.adj_list[k][m] == 0
+                    # See if there is a blue edge
+                    current_blue_edge = []
+                    if (inst_cpy.adj_list[j][k] == 1) and (in_degree_list[j] == 2) and (out_degree_list[k] == 2):
+                        current_blue_edge.extend([j, k])
+                    if len(current_blue_edge) == 2:
+                        # If the blue edge is in a component with 9 edges: - FIX
+                            # Run recursively on this subgraph - FIX
+                        # else:
+                            for l in range(len(inst_cpy.adj_list)):
+                                if l not == j:
+                                    if inst_cpy.adj_list[l][j] == 1:
+                                        inst_cpy.adj_list[l][j] == 0
+                                        if l in S:
+                                            S[l].append(j)
+                                        else:
+                                            S[l] = [j]
+
+                                if l not == k:
+                                    if inst_cpy.adj_list[k][l] == 1:
+                                        inst_cpy.adj_list[k][l] == 0
+                                        if k in S:
+                                            S[k].append(l)
+                                        else:
+                                            S[k] = [l]
+        if not inst_cpy.is_cycle():
+            # add all edges of inst_cpy to S
+        else:
+            # append compute_result_small_degree_algo1(inst_cpy) to S
+        # TODO - didn't get to step 3/4
+        return [x for x in range(len(instance.adj_list))] # FIX THIS
+
+def compute_result_small_degree_algo1(instance):
+    while inst_cpy.is_cycle():
+        cycle = inst_cpy.find_cycle()
+        for i in range(len(cycle) - 1):
+            inst_cpy.adj_list[cycle[i]][cycle[i+1]] = 0
+            if cycle[i] not in S:
+                S[cycle[i]] = [cycle[i + 1]]
+            else:
+                S[cycle[i]].append(cycle[i + 1])
+        inst_cpy.adj_list[cycle[-1]][cycle[0]] = 0
+    for i in range(len(inst_cpy.adj_list)):
+        for j in range(len(inst_cpy.adj_list[0])):
+            if i != j:
+                if inst_cpy.adj_list[i][j] == 1:
+                    if i not in S:
+                        S[i] = [j]
+                    else:
+                        S[i].append(j)
+    sub_adj_list = [[0 for _ in range(len(inst_cpy.adj_list))] for _ in range(len(inst_cpy.adj_list))]
+    for i in S.keys():
+        for j in S[i]:
+            sub_adj_list[i][j] = 1
+    return g.DGraph(len(sub_adj_list), sub_adj_list).linearize()[::-1]
 
 ####################
 # HELPER FUNCTIONS #
@@ -129,7 +270,6 @@ def process_instance(f):
 
     """
     num_nodes = int(f.readline())
-    adj_matrix = []
     instance = g.DGraph(num_nodes)
     for x in range(num_nodes):
         line = f.readline().split()
@@ -175,6 +315,13 @@ def complete(instance):
     adj_list = instance.adj_list
     return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
 
+def two_cycle(instance, i, j):
+    """Returns true if there is an edge from i to j and back"""
+    return instance.adj_list[i][j] == 1 and instance.adj_list[j][i] == 1
+def three_cycle(instance, i, j, m):
+    """Returns true if there is an edge from i to j to m to i, 
+    or i to m to j to i """
+    return (instance.adj_list[i][j] == 1 and instance.adj_list[j][m] == 1 and instance.adj_list[m][i]) or (instance.adj_list[i][m] == 1 and instance.adj_list[m][j] == 1 and instance.adj_list[j][i])
 
 if PROCESS_MODE:
     with open('eigenvectors.out', 'w') as o:        
