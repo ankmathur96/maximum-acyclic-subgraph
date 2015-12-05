@@ -2,8 +2,8 @@ import graph as g
 import random
 
 PROCESS_MODE = True
-INSTANCE_START = 1 # note that this is inclusive
-INSTANCE_END = 50 # note that this is inclusive
+INSTANCE_START = 151 # note that this is inclusive
+INSTANCE_END = 200 # note that this is inclusive
 N_RANDOM_TRIES = 100000
 TEST_INSTANCES = ["eigenvectors1.in", "eigenvectors2.in", "eigenvectors3.in"]
 
