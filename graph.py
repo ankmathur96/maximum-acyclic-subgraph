@@ -45,8 +45,10 @@ class DGraph():
 			adj_vertices = self.node_list[v].children
 			for m in adj_vertices:
 				if not visited[m] and self.cycle_util(m, visited, recursion_stack):
+					print(recursion_stack)
 					return True
 				elif recursion_stack[m]:
+					print(recursion_stack)
 					return True
 		recursion_stack[v] = False
 		return False
@@ -62,6 +64,24 @@ class DGraph():
 				return True
 		return False
 
+	def find_cycle_helper(self, v, visited, recursion_stack):
+		"""Helper function for find cycle"""
+		if visited[v] == False:
+			visited[v] = True
+			recursion_stack[v] = True
+			adj_vertices = self.node_list[v].children
+			for m in adj_vertices:
+				if not visited[m]:
+					potential_cycle = self.find_cycle_helper(m, visited, recursion_stack)
+					if len(potential_cycle) > 0:
+						cycle = potential_cycle + [v]
+						return cycle
+				elif recursion_stack[m]:
+					cycle = [v]
+					return cycle
+		recursion_stack[v] = False
+		return []
+
 	def find_cycle(self):
 		"""Returns an ordered list of vertices in the cycle.
 
@@ -70,8 +90,18 @@ class DGraph():
 		The cycle-completing edge from 2 -> 1 is left implicit.
 
 		"""  
-		# TO BE IMPLEMENTED BY ANKIT
-		return []                                                                                      
+		recursion_stack, visited = [], []
+		for i in range(len(self.node_list)):
+			visited.append(False)
+			recursion_stack.append(False)
+		for j in range(len(self.node_list)):
+			potential_cycle = self.find_cycle_helper(j, visited, recursion_stack)
+			if len(potential_cycle) > 0:
+				break
+		if len(potential_cycle) == 0:
+			return potential_cycle
+		else:
+			return potential_cycle[::-1]                                                                         
 
 	def linearize_helper(self, v, visited, linear_order):
 		"""Helper function for graph linearization"""
@@ -84,7 +114,6 @@ class DGraph():
 	def linearize(self):
 		"""Returns linearized ordering of graph (if DAG), False otherwise"""
 		if self.is_cycle():
-			# print('IS CYCLE')
 			return []
 		visited = [False for i in range(len(self.node_list))]
 		linear_order = []
@@ -109,10 +138,9 @@ class Node():
 		else:
 			self.children = set()
 if __name__ == "__main__":
-	g = DGraph(5)
-	g.edge(1,0)
-	g.edge(3,1)
-	g.edge(0,2)
-	g.edge(2,3)
-	g.edge(3,4)
-	print(g.linearize())
+	g = DGraph(4)
+	g.edge(2,1)
+	g.edge(2,0)
+	g.edge(3,2)
+	g.edge(1,3)
+	print(g.find_cycle())
