@@ -116,6 +116,31 @@ def compute_result_small_degree(instance):
             break
         return [x for x in range(len(instance.adj_list))]
 
+def pos_neg_split(nodes, instance):
+    positive, negative = [], []
+    if len(nodes) <= 1:
+        return nodes
+    for n in nodes:
+        if instance.out_degree(n) - instance.in_degree(n) >= 0:
+            positive.append(n)
+        else:
+            negative.append(n)
+    if len(positive) == 0:
+        positive.append(negative.pop(0))
+    if len(negative) == 0:
+        negative.append(positive.pop(0))
+    for i in positive:
+        for j in negative:
+            instance.adj_list[i][j], instance.adj_list[j][i] = 0, 0
+    return pos_neg_split(positive, instance) + pos_neg_split(negative, instance)
+
+def recursive_split(instance):
+    new_graph = graph_shallow_copy(instance)
+    ordering = pos_neg_split(list(range(len(instance.node_list))), new_graph)
+    return ordering
+
+def graph_shallow_copy(instance):
+    return g.DGraph(len(instance.adj_list), copy(instance.adj_list))
 ####################
 # HELPER FUNCTIONS #
 ####################
@@ -177,19 +202,23 @@ def complete(instance):
     return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
 
 
-if PROCESS_MODE:
-    with open('eigenvectors.out', 'w') as o:        
-        for x in range(INSTANCE_START, INSTANCE_END + 1):
-            print("proccessing instance " + str(x))
-            with open("instances/" + str(x) + '.in', 'r') as i:
-                instance = process_instance(i)
-                result = find_MAS(instance)
-                print(' '.join(map(str, result)), file=o)
-else:
-    print('running on test instances.')
-    for instance in TEST_INSTANCES:
-        with open(instance + '-out.out', 'w') as o:
-            with open(instance, 'r') as i:
-                instance = process_instance(i)
-                result = find_MAS(instance)
-                print(' '.join(map(str, result)) + '\n', file=o)
+# if PROCESS_MODE:
+#     with open('eigenvectors.out', 'w') as o:        
+#         for x in range(INSTANCE_START, INSTANCE_END + 1):
+#             print("proccessing instance " + str(x))
+#             with open("instances/" + str(x) + '.in', 'r') as i:
+#                 instance = process_instance(i)
+#                 result = find_MAS(instance)
+#                 print(' '.join(map(str, result)), file=o)
+# else:
+#     print('running on test instances.')
+#     for instance in TEST_INSTANCES:
+#         with open(instance + '-out.out', 'w') as o:
+#             with open(instance, 'r') as i:
+#                 instance = process_instance(i)
+#                 result = find_MAS(instance)
+#                 print(' '.join(map(str, result)) + '\n', file=o)
+
+import instance_gen as ig
+gr = ig.random_backedges(20)
+print(recursive_split(g.DGraph(len(gr), gr)))
