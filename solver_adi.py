@@ -10,7 +10,7 @@ TEST_INSTANCES = ["eigenvectors1.in", "eigenvectors2.in", "eigenvectors3.in"]
 def find_MAS(instance):
     """Overaching function that approximates the maximum acyclic subgraph for an input directed graph"""
     try:
-        lin_order = nx.algorithms.dag.topological_sort(instance, reverse=True)
+        lin_order = nx.algorithms.dag.topological_sort(instance, reverse=False)
     except nx.exception.NetworkXUnfeasible:
         lin_order = False
     print('done linearizing')
@@ -55,7 +55,7 @@ def compute_result_small_degree(instance):
             except nx.exceptions.NetworkXError:
                 print('fail')
                 a += 1
-    return nx.algorithms.dag.topological_sort(inst_cpy, reverse=True)
+    return nx.algorithms.dag.topological_sort(inst_cpy, reverse=False)
 
 
 def compute_result_general(G):
