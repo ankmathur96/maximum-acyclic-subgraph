@@ -1,72 +1,28 @@
 import graph as g
 import random
-
+import networkx as nx
 PROCESS_MODE = True
 INSTANCE_START = 1 # note that this is inclusive
 INSTANCE_END = 621 # note that this is inclusive
-N_RANDOM_TRIES = 100000
+N_RANDOM_TRIES = 1000
 TEST_INSTANCES = ["eigenvectors1.in", "eigenvectors2.in", "eigenvectors3.in"]
 
 def find_MAS(instance):
     """Overaching function that approximates the maximum acyclic subgraph for an input directed graph"""
-    lin_order = instance.linearize()[::-1]
+    try:
+        lin_order = nx.algorithms.dag.topological_sort(instance, reverse=True)
+    except nx.exception.NetworkXUnfeasible:
+        lin_order = False
+    print('done linearizing')
     if lin_order:
+        print('linear')
         return [1 + x for x in lin_order]
-    return compute_result_2(instance) # TEMP
+    return [1 + x for x in compute_result_general(instance)]
+    # return [1 + x for x in compute_result_small_degree(instance)] # TEMP
     # for i in range(len(instance.adj_list)):
     #     if instance.out_degree(i) + instance.in_degree(i) > 3:
     #         return [1 + x for x in compute_result_general(instance)]
     # return [1 + x for x in compute_result_small_degree(instance)]
-
-def compute_result_general(instance):
-    """Computes an approximate ordering of the nodes in the graph such that
-       the number of valid edges is maximized. See the Maximum Acyclic Subgraph
-       problem for more details. 
-
-       This function is run when the input graph is a DAG.
-
-    Args:
-        instance (DGraph): The graph which we are ordering.
-
-    Returns:
-        list: An ordered list of integers that represent nodes in graph.
-
-    """
-    # UNTESTED
-    # Special cases
-    adj_list = instance.adj_list
-    if circular(instance):
-        return compute_result_small_degree(instance)
-    if complete(instance):
-        return [x for x in range(len(adj_list))]
-
-    # TO BE DEBUGGED BY ADI/ARNAV
-    # ACTUAL ALGORITHM:
-    # label the vertices such that you can say one set of the graph
-    # has edges where the edge (n1, n2) has n1 < n2 and the other set has n1 > n2.
-    # Neither of these will have cycles. Pick the one with larger cardinality.
-    # Repeat several times and take the best ordering.
-    # Linearize and produce a valid ranking at the end.
-    best_set = []
-    for i in range(N_RANDOM_TRIES):
-        labels = [x for x in range(len(instance.adj_list))]
-        random.shuffle(labels)
-        set1 = []
-        set2 = []
-        for x in range(len(adj_list)): # Iterate through every edge by checking for 1s in adj_list
-        	for y in range(len(adj_list[x])):
-        		if adj_list[x][y] == 1:
-		            if labels[x] < labels[y]:
-		                set1.append((x,y))
-		            else:
-		                set2.append((x,y))
-        larger_set = set1 if len(set1) > len(set2) else set2
-        if (len(larger_set) > len(best_set)):
-            best_set = larger_set
-    new_graph = g.DGraph(len(adj_list))
-    for edge in best_set:
-        new_graph.edge(edge[0], edge[1])
-    return new_graph.linearize()[::-1]
 
 def compute_result_small_degree(instance):
     """Computes an 8/9-approximation of the nodes in the graph such that
@@ -82,40 +38,77 @@ def compute_result_small_degree(instance):
         list: An ordered list of integers that represent nodes in graph.
 
     """
-    S, inst_cpy = {}, g.DGraph(len(instance.adj_list), copy(instance.adj_list))
-    if not has_blue_edge(instance):
-        while inst_cpy.is_cycle():
-            cycle = inst_cpy.find_cycle()
-            for i in range(len(cycle) - 1):
-                inst_cpy.adj_list[cycle[i]][cycle[i+1]] = 0
-                if cycle[i] not in S:
-                    S[cycle[i]] = [cycle[i + 1]]
-                else:
-                    S[cycle[i]].append(cycle[i + 1])
-            inst_cpy.adj_list[cycle[-1]][cycle[0]] = 0
-        for i in range(len(inst_cpy.adj_list)):
-            for j in range(len(inst_cpy.adj_list[0])):
-                if i != j:
-                    if inst_cpy.adj_list[i][j] == 1:
-                        if i not in S:
-                            S[i] = [j]
-                        else:
-                            S[i].append(j)
-        sub_adj_list = [[0 for _ in range(len(inst_cpy.adj_list))] for _ in range(len(inst_cpy.adj_list))]
-        for i in S.keys():
-            for j in S[i]:
-                sub_adj_list[i][j] = 1
-        return g.DGraph(len(sub_adj_list), sub_adj_list).linearize()[::-1]
-    else:
-        while has_blue_edge(inst_cpy):
-            # TO BE IMPLEMENTED BY ADI/ARNAV
-            # Optimally treat any 2- and 3- cycles
+    print('edges:', instance.size(),', nodes:', len(instance))
+    inst_cpy = instance.copy()
+    cycles = nx.algorithms.cycles.simple_cycles(instance)
+    cycles = [cycle for cycle in cycles]
+    print(cycles)
+    for cycle in cycles:
+        print(cycle)
+        print('attempt detection')
+        a = 0
+        while a < 100:    
+            kill = random.randint(0,len(cycle)-2)
+            try:
+                inst_cpy.remove_edge(cycle[kill], cycle[kill+1])
+                break
+            except nx.exceptions.NetworkXError:
+                print('fail')
+                a += 1
+    return nx.algorithms.dag.topological_sort(inst_cpy, reverse=True)
 
-            # Find a blue edge
 
-            # ... continue
-            break
-        return [x for x in range(len(instance.adj_list))]
+def compute_result_general(G):
+    """Computes an approximate ordering of the nodes in the graph such that
+       the number of valid edges is maximized. See the Maximum Acyclic Subgraph
+       problem for more details. 
+
+       This function is run when the input graph is a DAG.
+
+    Args:
+        G (DiGraph): The graph which we are ordering.
+
+    Returns:
+        list: An ordered list of integers that represent nodes in graph.
+
+    """
+    # UNTESTED
+    # Special cases
+    # adj_list = instance.adj_list
+    # if circular(instance):
+    #     return compute_result_small_degree(instance)
+    # if complete(instance):
+    #     return [x for x in range(len(adj_list))]
+
+    # TO BE DEBUGGED BY ADI/ARNAV
+    # ACTUAL ALGORITHM:
+    # label the vertices such that you can say one set of the graph
+    # has edges where the edge (n1, n2) has n1 < n2 and the other set has n1 > n2.
+    # Neither of these will have cycles. Pick the one with larger cardinality.
+    # Repeat several times and take the best ordering.
+    # Linearize and produce a valid ranking at the end.
+    best_set = []
+    for i in range(N_RANDOM_TRIES):
+        labels = [x for x in range(len(G))]
+        random.shuffle(labels)
+        set1 = []
+        set2 = []
+        for x in range(len(G)): # Iterate through every edge by checking for 1s in adj_list
+            for y in range(len(G)):
+                if G.has_edge(x,y):
+                    if labels[x] < labels[y]:
+                        set1.append((x,y))
+                    else:
+                        set2.append((x,y))
+        larger_set = set1 if len(set1) > len(set2) else set2
+        if (len(larger_set) > len(best_set)):
+            best_set = larger_set
+    new_graph = nx.DiGraph()
+    new_graph.add_nodes_from(G.nodes())
+    for edge in best_set:
+        new_graph.add_edge(edge[0], edge[1])
+    return nx.algorithms.dag.topological_sort(new_graph, reverse=False)
+
 
 def compute_result_2(instance):
     return improve_ordering(recursive_split(instance), instance)
@@ -135,12 +128,15 @@ def pos_neg_split(nodes, instance):
         negative.append(positive.pop(0))
     for i in positive:
         for j in negative:
-            instance.adj_list[i][j], instance.adj_list[j][i] = 0, 0
+            if instance.has_edge(i,j):
+                instance.remove_edge(i,j)
+            if instance.has_edge(j,i):
+                instance.remove_edge(j,i)
     return pos_neg_split(positive, instance) + pos_neg_split(negative, instance)
 
 def recursive_split(instance):
-    new_graph = graph_shallow_copy(instance)
-    ordering = pos_neg_split(list(range(len(instance.node_list))), new_graph)
+    new_graph = instance.copy()
+    ordering = pos_neg_split(instance.nodes(), new_graph)
     return ordering
 
 def improve_ordering(ordering, instance):
@@ -189,7 +185,14 @@ def eval_ordering(ordering, instance):
     return count
 
 def graph_shallow_copy(instance):
-    return g.DGraph(len(instance.adj_list), copy(instance.adj_list))
+    print('instance has cycle?', instance.is_cycle())
+    print(instance.node_list)
+    print('***')
+    gr = g.DGraph(len(instance.adj_list), copy(instance.adj_list))
+    print(gr.node_list)
+    print(gr.node_list[0].children)
+    print('copy has cycle?', gr.is_cycle())
+    return gr
 ####################
 # HELPER FUNCTIONS #
 ####################
@@ -205,12 +208,13 @@ def process_instance(f):
     """
     num_nodes = int(f.readline())
     adj_matrix = []
-    instance = g.DGraph(num_nodes)
+    instance = nx.DiGraph()
+    instance.add_nodes_from(range(num_nodes))
     for x in range(num_nodes):
         line = f.readline().split()
         for i, edge in enumerate(line):
             if (int(edge) == 1):
-                instance.edge(int(x), int(i))
+                instance.add_edge(int(x), int(i))
     return instance
 
 def has_blue_edge(instance):
@@ -250,6 +254,16 @@ def complete(instance):
     adj_list = instance.adj_list
     return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
 
+def adj_mat_to_nwx(adj_mat):
+    instance = nx.DiGraph()
+    num_nodes = len(adj_mat)
+    instance.add_nodes_from(range(num_nodes))
+    for x in range(num_nodes):
+        row = adj_mat[x]
+        for i, edge in enumerate(row):
+            if (int(edge) == 1):
+                instance.add_edge(int(x), int(i))
+    return instance
 
 if PROCESS_MODE:
     with open(str(INSTANCE_START) + "_" + str(INSTANCE_END) + '.out', 'w') as o:        
@@ -267,3 +281,8 @@ else:
                 instance = process_instance(i)
                 result = find_MAS(instance)
                 print(' '.join(map(str, result)) + '\n', file=o)
+# import instance_gen as ig
+
+# inst_adj = ig.single_cycle(5)
+# nxg = adj_mat_to_nwx(inst_adj)
+# print(compute_result_small_degree(nxg))

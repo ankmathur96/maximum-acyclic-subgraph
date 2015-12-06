@@ -4,12 +4,21 @@ class DGraph():
 	# Consider switching to one of Python's native Graph classes later.
 	def __init__(self, num_nodes, adj_list=None):
 		self.node_list = []
+		for x in range(num_nodes):
+			new_node = Node(x)
+			if adj_list:
+				print(adj_list)
+				for row in adj_list[x]:
+					print(row)
+					for i, elem in enumerate(row):
+						if elem == 1:
+							new_node.children.add(i)
+			self.node_list.append(new_node)
 		if adj_list:
 			self.adj_list = adj_list
 		else:
 			self.adj_list = [[0 for _ in range(num_nodes)] for _ in range(num_nodes)]
-		for x in range(num_nodes):
-			self.node_list.append(Node(x))
+
 
 	def edge(self, n1, n2):
 		"""Generates an edge between nodes n1 and n2"""
