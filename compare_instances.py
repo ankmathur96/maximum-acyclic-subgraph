@@ -15,7 +15,7 @@ def combine_instances():
             end = 621
         if start >= 650:
             done = True
-    with open('eigenvectors-combined.out', 'w') as out:
+    with open('eigenvectors-blah.out', 'w') as out:
         for l in lines:
             out.write(l)
 
