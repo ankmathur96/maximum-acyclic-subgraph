@@ -70,11 +70,11 @@ if __name__ == "__main__":
             combine_instances()
         except Exception:
             traceback.print_exc()
-            print('USAGE: python3 combine_instances.py or python3 combine_instances.py [solution 1].out [solution 2].out')
+            print('USAGE: python3 compare_instances.py or python3 compare_instances.py [solution 1].out [solution 2].out')
     elif len(argv) == 2:
         try:
             evaluate_solutions(argv[0], argv[1])
         except Exception:
-            print('USAGE: python3 combine_instances.py or python3 combine_instances.py [solution 1].out [solution 2].out')
+            print('USAGE: python3 compare_instances.py or python3 compare_instances.py [solution 1].out [solution 2].out')
     else:
-        print('USAGE: python3 combine_instances.py or python3 combine_instances.py [solution 1].out [solution 2].out')
+        print('USAGE: python3 compare_instances.py or python3 compare_instances.py [solution 1].out [solution 2].out')
