@@ -11,10 +11,9 @@ def main(argv):
 def processTest(inst, sol):
 	fin = open(inst, "r")
 	N = int(fin.readline().split()[0])
-	d, e = [[0 for j in range(N)] for i in range(N)], 0
+	d = [[0 for j in range(N)] for i in range(N)]
 	for i in xrange(N):
 		d[i] = map(int, fin.readline().split())
-		e += sum(d[i])
 
 	fin = open(sol, "r")
 	ans = map(lambda x: (int(x) - 1), fin.readline().split())
@@ -24,7 +23,7 @@ def processTest(inst, sol):
 		for j in xrange(i + 1, N):
 			if d[ans[i]][ans[j]] == 1:
 				count += 1
-	return "solution value is %.4f" % (count / e)
+	return "solution value is %d" % count
 
 if __name__ == '__main__':
 	main(sys.argv[1:])
