@@ -2,8 +2,8 @@ import graph as g
 import random
 
 PROCESS_MODE = True
-INSTANCE_START = 151 # note that this is inclusive
-INSTANCE_END = 200 # note that this is inclusive
+INSTANCE_START = 1 # note that this is inclusive
+INSTANCE_END = 621 # note that this is inclusive
 N_RANDOM_TRIES = 100000
 TEST_INSTANCES = ["eigenvectors1.in", "eigenvectors2.in", "eigenvectors3.in"]
 
@@ -12,10 +12,11 @@ def find_MAS(instance):
     lin_order = instance.linearize()[::-1]
     if lin_order:
         return [1 + x for x in lin_order]
-    for i in range(len(instance.adj_list)):
-        if instance.out_degree(i) + instance.in_degree(i) > 3:
-            return [1 + x for x in compute_result_general(instance)]
-    return [1 + x for x in compute_result_small_degree(instance)]
+    return compute_result_2(instance) # TEMP
+    # for i in range(len(instance.adj_list)):
+    #     if instance.out_degree(i) + instance.in_degree(i) > 3:
+    #         return [1 + x for x in compute_result_general(instance)]
+    # return [1 + x for x in compute_result_small_degree(instance)]
 
 def compute_result_general(instance):
     """Computes an approximate ordering of the nodes in the graph such that
@@ -116,6 +117,9 @@ def compute_result_small_degree(instance):
             break
         return [x for x in range(len(instance.adj_list))]
 
+def compute_result_2(instance):
+    return improve_ordering(recursive_split(instance), instance)
+
 def pos_neg_split(nodes, instance):
     positive, negative = [], []
     if len(nodes) <= 1:
@@ -138,6 +142,51 @@ def recursive_split(instance):
     new_graph = graph_shallow_copy(instance)
     ordering = pos_neg_split(list(range(len(instance.node_list))), new_graph)
     return ordering
+
+def improve_ordering(ordering, instance):
+    """Attempts to improve an ordering by looking for back edges and moving nodes to
+       reduce those back edges.
+
+    Args:
+        ordering (list): The ordering being improved.
+        instance (DGraph): The graph which we are ordering.
+
+    Returns:
+        list: The improved ordering.
+
+    """
+    for _ in range(len(ordering)):
+        new_ordering = improve_helper(ordering, instance)
+        if (ordering == new_ordering):
+            break
+    return ordering
+def improve_helper(ordering, instance):
+    order_map = {}
+    for i in range(len(ordering)):
+        order_map[ordering[i]] = i
+    for u in ordering[::-1]:
+        for v in instance.adj_list[u]:
+            if (v == 1 and order_map[u] > order_map[v]):
+                ordering_copy = ordering[:]
+                ordering_copy[order_map[v]] = u
+                ordering_copy[order_map[u]] = v
+                if (eval_ordering(ordering, instance) < eval_ordering(ordering_copy, instance)):
+                    return ordering_copy
+    return ordering
+
+def eval_ordering(ordering, instance):
+    """ takes in 0 indexed ordering"""
+    N = len(instance.adj_list)
+    d = instance.adj_list
+
+    ans = ordering
+
+    count = 0.0
+    for i in range(N):
+        for j in range(i + 1, N):
+            if d[ans[i]][ans[j]] == 1:
+                count += 1
+    return count
 
 def graph_shallow_copy(instance):
     return g.DGraph(len(instance.adj_list), copy(instance.adj_list))
@@ -202,23 +251,19 @@ def complete(instance):
     return sum([sum([el != 1 for el in row]) for row in adj_list]) == 0
 
 
-# if PROCESS_MODE:
-#     with open('eigenvectors.out', 'w') as o:        
-#         for x in range(INSTANCE_START, INSTANCE_END + 1):
-#             print("proccessing instance " + str(x))
-#             with open("instances/" + str(x) + '.in', 'r') as i:
-#                 instance = process_instance(i)
-#                 result = find_MAS(instance)
-#                 print(' '.join(map(str, result)), file=o)
-# else:
-#     print('running on test instances.')
-#     for instance in TEST_INSTANCES:
-#         with open(instance + '-out.out', 'w') as o:
-#             with open(instance, 'r') as i:
-#                 instance = process_instance(i)
-#                 result = find_MAS(instance)
-#                 print(' '.join(map(str, result)) + '\n', file=o)
-
-import instance_gen as ig
-gr = ig.random_backedges(20)
-print(recursive_split(g.DGraph(len(gr), gr)))
+if PROCESS_MODE:
+    with open(str(INSTANCE_START) + "_" + str(INSTANCE_END) + '.out', 'w') as o:        
+        for x in range(INSTANCE_START, INSTANCE_END + 1):
+            print("proccessing instance " + str(x))
+            with open("instances/" + str(x) + '.in', 'r') as i:
+                instance = process_instance(i)
+                result = find_MAS(instance)
+                print(' '.join(map(str, result)), file=o)
+else:
+    print('running on test instances.')
+    for instance in TEST_INSTANCES:
+        with open(instance + '-out.out', 'w') as o:
+            with open(instance, 'r') as i:
+                instance = process_instance(i)
+                result = find_MAS(instance)
+                print(' '.join(map(str, result)) + '\n', file=o)

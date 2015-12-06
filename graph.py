@@ -45,10 +45,8 @@ class DGraph():
 			adj_vertices = self.node_list[v].children
 			for m in adj_vertices:
 				if not visited[m] and self.cycle_util(m, visited, recursion_stack):
-					print(recursion_stack)
 					return True
 				elif recursion_stack[m]:
-					print(recursion_stack)
 					return True
 		recursion_stack[v] = False
 		return False
