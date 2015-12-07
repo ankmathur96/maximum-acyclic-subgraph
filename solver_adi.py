@@ -4,7 +4,7 @@ import networkx as nx
 PROCESS_MODE = True
 INSTANCE_START = 1 # note that this is inclusive
 INSTANCE_END = 621 # note that this is inclusive
-N_RANDOM_TRIES = 1000
+N_RANDOM_TRIES = 100000000
 TEST_INSTANCES = ["eigenvectors1.in", "eigenvectors2.in", "eigenvectors3.in"]
 
 def find_MAS(instance):
@@ -17,7 +17,8 @@ def find_MAS(instance):
     if lin_order:
         print('linear')
         return [1 + x for x in lin_order]
-    return [1 + x for x in compute_result_general(instance)]
+    return [1 + x for x in recursive_split(instance)]
+    # return [1 + x for x in compute_result_general(instance)]
     # return [1 + x for x in compute_result_small_degree(instance)] # TEMP
     # for i in range(len(instance.adj_list)):
     #     if instance.out_degree(i) + instance.in_degree(i) > 3:
@@ -151,7 +152,7 @@ def improve_ordering(ordering, instance):
         list: The improved ordering.
 
     """
-    for _ in range(len(ordering)):
+    for _ in range(N_RANDOM_TRIES):
         new_ordering = improve_helper(ordering, instance)
         if (ordering == new_ordering):
             break
